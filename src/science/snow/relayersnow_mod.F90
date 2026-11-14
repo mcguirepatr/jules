@@ -541,7 +541,8 @@ DO k = 1,surft_pts
       ! unchanged from input value, but the calculation is required for
       ! timesteps when nsnow changes to zero.
       !-----------------------------------------------------------------------
-      rho_snow_grnd(i) = snowmass(i) / snowdepth(i)
+      ! rho_snow_grnd(i) = snowmass(i) / snowdepth(i) !PCM
+      rho_snow_grnd(i) = rho_snow_fresh !PCM temporarily set this value 
     END IF
 
   END IF   !  nsnow

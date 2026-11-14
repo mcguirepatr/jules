@@ -383,6 +383,12 @@ IF ( .NOT. l_snow_albedo ) THEN
     ERROR = 1
     CALL log_error(routinename, "No value for albsnc_min")
   END IF
+
+  IF ( ( can_rad_mod == 6 .OR. can_rad_mod == 8 ) .AND.                 &
+       ANY( ABS( knl(:) - rmdi ) < EPSILON(1.0) ) ) THEN
+    error = 1
+    CALL log_error(routinename, "No value for knl")
+  END IF
 END IF
 
 IF (l_trait_phys) THEN

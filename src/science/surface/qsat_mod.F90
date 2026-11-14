@@ -73,6 +73,8 @@ USE qsat_data_mod, ONLY:  t_low, t_high, delta_t, es
 ! Use in required info. Make sure it's the right KIND
 USE planet_constants_mod, ONLY: repsilon, one_minus_epsilon
 USE water_constants_mod,  ONLY: zerodegc => tm
+USE jules_print_mgr, ONLY:                                                   &
+    jules_print
 IMPLICIT NONE
 ! Subroutine Arguments:
 INTEGER, INTENT(IN)  :: npnts
@@ -88,6 +90,7 @@ REAL(KIND=real_jlslsm), PARAMETER      :: one   = 1.0,                         &
                         pconv = 1.0e-8,                                        &
                         term1 = 4.5,                                           &
                         term2 = 6.0e-4
+CHARACTER(LEN=50000) :: lineBuffer
 
 DO i = 1, npnts
   ! Compute the factor that converts from sat vapour pressure in a
@@ -105,7 +108,21 @@ DO i = 1, npnts
   atable = (tt - t_low + delta_t) / delta_t
   itable = atable
   atable = atable - itable
+  !WRITE(lineBuffer,*)'QQQ = ',i,npnts,one,atable,itable,tt,t_low,delta_t
+  !CALL jules_print('qsat',lineBuffer)
+  !WRITE(lineBuffer,*)'QQQ1 = ',itable
+  !CALL jules_print('qsat',lineBuffer)
+  !WRITE(lineBuffer,*)'QQQ1a = ',SHAPE(es)
+  !CALL jules_print('qsat',lineBuffer)
+  !WRITE(lineBuffer,*)'QQQ1b = ',es(itable)
+  !CALL jules_print('qsat',lineBuffer)
+  !WRITE(lineBuffer,*)'QQQ2 = ',itable+1
+  !CALL jules_print('qsat',lineBuffer)
+  !WRITE(lineBuffer,*)'QQQ2b = ',es(itable+1)
+  !CALL jules_print('qsat',lineBuffer)
   qs(i)  = (one - atable) * es(itable) + atable * es(itable+1)
+  !WRITE(lineBuffer,*)'QQQ3 = ',qs(i)
+  !CALL jules_print('qsat',lineBuffer)
 
   ! Multiply by fsubw to convert to saturated vapour pressure in air
   ! (equation A4.6 OF Adrian Gill's book).

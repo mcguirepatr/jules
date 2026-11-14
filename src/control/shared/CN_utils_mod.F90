@@ -110,7 +110,9 @@ ELSE
   IF ( l_trait_phys ) THEN
 
     SELECT CASE ( can_rad_mod )
-    CASE ( 1, 6 )
+    CASE ( 4,5,7 )
+      nl_ave = nmass(n) * lma(n) * (1.0 - EXP(-kn(n))) / kn(n)
+    CASE DEFAULT
       x_tmp = kn(n) * lai_bal
       IF ( x_tmp > EPSILON(0.0) ) THEN
         nl_ave = nmass(n) * lma(n) * (1 - EXP(-x_tmp))                         &
@@ -129,7 +131,9 @@ ELSE
   ELSE
 
     SELECT CASE ( can_rad_mod )
-    CASE ( 1, 6 )
+    CASE ( 4,5,7 )
+      nl_ave = nl0(n) * sigl(n) * (1.0 - EXP(-kn(n))) / kn(n)
+    CASE DEFAULT
       x_tmp = kn(n) * lai_bal
       IF ( x_tmp > EPSILON(0.0) ) THEN
         nl_ave = nl0(n) * sigl(n) * (1 - EXP(-x_tmp))                          &
@@ -231,7 +235,7 @@ can_averaging_fac(:) = 1.0
 IF ( l_leaf_n_resp_fix ) THEN
   SELECT CASE ( can_rad_mod )
 
-  CASE ( 1, 6 )
+  CASE ( 1, 6, 8 )
     !       Exponential decay with LAI.
     IF ( can_rad_mod == 1 ) THEN
       kval = kpar(ft)
@@ -248,7 +252,7 @@ IF ( l_leaf_n_resp_fix ) THEN
       END DO
     END IF
 
-  CASE ( 4, 5 )
+  CASE ( 4, 5, 7 )
     !       Exponential decay with layers.
     IF ( kn(ft) > EPSILON(0.0) ) THEN
       can_averaging_fac(:) = (1.0 - EXP(-kn(ft))) / kn(ft)
@@ -264,7 +268,8 @@ IF ( l_leaf_n_resp_fix ) THEN
 ELSE
   !   l_leaf_n_resp_fix = F
 
-  IF ( can_rad_mod == 6 .AND. knl(ft) > EPSILON(0.0) ) THEN
+  IF ( ( can_rad_mod == 6 .OR. can_rad_mod == 8 ) .AND.                       &
+          knl(ft) > EPSILON(0.0) ) THEN
     DO m = 1,veg_pts
       l = veg_index(m)
       x_tmp = knl(ft) * lai(l)

@@ -185,8 +185,8 @@ LOGICAL ::                                                                     &
 ! Switches for bug fixes.
     l_leaf_n_resp_fix = .FALSE.,                                               &
         ! Switch to use correct forms for canopy-average leaf nitrogen.
-        ! This affects can_rad_mod = 1, 4 and 5, not 6 (which is correct).
-    l_stem_resp_fix = .FALSE.,                                                 &
+        ! This affects can_rad_mod=1 to 5 and 7, not 6 or 8 (which is correct).
+    l_stem_resp_fix = .FALSE.,                                                &
         ! Switch used to control whether LAI or LAI_BAL is used in stem
         ! resp calculation. Only affects non-crop PFTs with l_trait_phys=F.
     l_vegcan_soilfx = .FALSE.,                                                 &
@@ -466,14 +466,11 @@ IF ( can_model == 4 .AND. l_aggregate ) THEN
                'surface scheme')
 END IF
 
-SELECT CASE ( can_rad_mod )
-CASE ( 1, 4, 5, 6 )
-  ! These are valid, so nothing to do.
-CASE DEFAULT
+IF ( can_rad_mod < 1 .OR. can_rad_mod > 8 ) THEN
   errcode = 101
-  CALL ereport("check_jules_vegetation", errcode,                              &
-               'can_rad_mod should be 1, 4, 5 or 6')
-END SELECT
+  CALL ereport("check_jules_vegetation", errcode,                         &
+               'can_rad_mod should be in range 1 to 8')
+END IF
 
 ! Check that the photosynthesis option is reasonable.
 SELECT CASE ( photo_model )

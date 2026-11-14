@@ -381,7 +381,7 @@ CALL check_jules_soil()
 ! jules_surf_param
 ! set diffuse fraction to 0.4 for CanRadMod 6
 jules_vars%diff_frac(:) = 0.0
-IF (can_rad_mod == 6) jules_vars%diff_frac(:) = 0.4
+IF (can_rad_mod == 6 .OR. can_rad_mod == 8) jules_vars%diff_frac(:) = 0.4
 
 ! jules_elevate
 ! Use same height for all land points.

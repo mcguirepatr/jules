@@ -158,6 +158,22 @@ CASE ( var_type_imogen_drive )    ! imogen driving variables
   IF ( PRESENT(dim_names_out) ) dim_names_out(1) = imogen_drive_dim_name_out
   IF ( PRESENT(dim_sizes) ) dim_sizes(1) = imogen_drive_dim_size
 
+CASE ( var_type_canlayer )
+! Variables per PFT and canopy levels
+  IF ( PRESENT(ndims) ) ndims = 2
+  IF ( PRESENT(dim_names_in) )                                            &
+    dim_names_in(1:2) = (/ pft_dim_name, canopy_dim_name /)
+  IF ( PRESENT(dim_names_out) )                                           &
+    dim_names_out(1:2) = (/ pft_dim_name_out, canopy_dim_name_out /)
+  IF ( PRESENT(dim_sizes) )                                               &
+    dim_sizes(1:2) = (/ pft_dim_size, canopy_dim_size /)
+
+CASE DEFAULT
+! Unrecognised variable type
+  CALL log_fatal("get_var_levs_dims",                                     &
+                 "Unrecognised variable type - check metadata")
+END SELECT
+
 CASE ( var_type_imogen_clim )    ! imogen climate input variables
   IF ( PRESENT(ndims) ) ndims = 1
   IF ( PRESENT(dim_names_in) ) dim_names_in(1) = imogen_clim_dim_name

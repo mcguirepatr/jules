@@ -59,7 +59,9 @@ CHARACTER(LEN=max_sdf_name_len), PARAMETER ::                                  &
   nolevs_dim_name_out       = 'olevs',                                         &
   p_rivers_dim_name_out     = 'p_rivers',                                      &
   seed_dim_name_out         = 'seed',                                          &
-  scalar_dim_name_out       = 'scalar'
+  scalar_dim_name_out       = 'scalar',                                        &
+  canopy_dim_name_out       = 'ilayers'
+
 
 !-----------------------------------------------------------------------------
 ! Module variables
@@ -85,7 +87,8 @@ CHARACTER(LEN=max_sdf_name_len) ::                                             &
   dep_species_dim_name  = 'dep_species',                                       &
   ch4layer_dim_name = 'ch4layer',                                              &
   bedrock_dim_name  = 'bedrock',                                               &
-  nmasst_dim_name   = 'nmasst'
+  nmasst_dim_name   = 'nmasst',                                                &
+  canopy_dim_name  = 'ilayers'
 
 ! The size of each possible levels dimension.
 ! Initialising these to something "unphysical" means that in future we can
@@ -110,7 +113,8 @@ INTEGER ::                                                                     &
   dep_species_dim_size = -1,                                                   &
   ch4layer_dim_size    = -1,                                                   &
   bedrock_dim_size     = -1,                                                   &
-  nmasst_dim_size      = -1
+  nmasst_dim_size      = -1,                                                   &
+  canopy_dim_size      = -1 
 
 ! Due to how CABLE sets variables differently to JULES, these numbers
 ! are currently necessary.
@@ -156,7 +160,8 @@ INTEGER, PARAMETER ::                                                          &
   var_type_cable1L_snow   = var_type_cable_snow + 1,                           &
   var_type_imogen_drive   = var_type_cable1L_snow + 1,                         &
   var_type_nmasst         = var_type_imogen_drive + 1,                         &
-  var_type_imogen_clim    = var_type_nmasst + 1
+  var_type_imogen_clim    = var_type_nmasst + 1,                               &
+  var_type_canlayer       = var_type_imogen_clim + 1
 
 ! Derived type to contain metadata about model variables
 TYPE :: var_metadata
@@ -176,7 +181,7 @@ END TYPE var_metadata
 ! Array holding the metadata for all model variables that we can use for input
 ! or output. The CABLE land surface model adds 10 prognostics for tiled
 ! soil/snow prognostics.
-INTEGER, PARAMETER :: n_vars = 722
+INTEGER, PARAMETER :: n_vars = 725
 TYPE(var_metadata) :: metadata(n_vars)
 
 ! Include the metadata DATA statement
@@ -199,6 +204,7 @@ PUBLIC                                                                         &
     imogen_drive_dim_name_out, imogen_clim_dim_name_out,                       &
     land_dim_name_out, nfarray_dim_name_out, nolevs_dim_name_out,              &
     p_rivers_dim_name_out, seed_dim_name_out, scalar_dim_name_out,             &
+    canopy_dim_name_out,                                                       &
 ! Variables
     bl_level_dim_name, pft_dim_name, quantile_dim_name,                        &
     cpft_dim_name, nvg_dim_name, type_dim_name, tile_dim_name,                 &
@@ -213,6 +219,7 @@ PUBLIC                                                                         &
     soil_dim_size, scpool_dim_size, soil_n_pool_dim_size, bedrock_dim_size,    &
     sclayer_dim_size, dep_species_dim_size, ch4layer_dim_size,                 &
     cable_tile_dim_size, cable_snow_dim_size, cable_soil_dim_size,             &
+    canopy_dim_name,                                                          &
 ! Routines for changing between string and integer identifiers
     get_var_id, get_string_identifier,                                         &
 ! Variable inquiry routines

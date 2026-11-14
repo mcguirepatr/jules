@@ -13,7 +13,7 @@ CHARACTER(LEN=*), PARAMETER, PRIVATE :: ModuleName='LEAF_MOD'
 CONTAINS
 SUBROUTINE leaf (clos_pts, ft, land_field, open_pts, pft_photo_model, veg_pts  &
 ,                clos_index ,open_index, veg_index                             &
-,                ca, ci, fsmc, o3mol, ra, tl, wcarb, wexpt, wlite, rd          &
+,                ca, ci, fsmc, o3mol, ra, tl, wcarb, wexpt, wlite, wmin, rd    &
 ,                al, flux_o3, fo3, gl)
 
 USE pftparm, ONLY: dfp_dcuo, fl_o3_ct, glmin
@@ -158,7 +158,7 @@ glmin_ft = glmin(ft)
 !$OMP PARALLEL DEFAULT(NONE) PRIVATE(j,l,b,c,beta1p2m4,beta2p2m4)              &
 !$OMP IF(open_pts > 1)                                                         &
 !$OMP SHARED(open_pts, pft_photo_model, land_grid_index, beta1,                &
-!$OMP        errcode, wcarb, wlite,                                            &
+!$OMP        errcode, wcarb, wlite, wmin,                                      &
 !$OMP        beta2, wp, wexpt, b1, b2, b3, wl, al, rd, fsmc,                   &
 !$OMP        conv, tl, glco2, ca, ci, gl, glmin_ft, ft, l_o3_damage,           &
 !$OMP        o3mol, ra, fo3, dfp_dcuo, fl_o3_ct, flux_o3)
@@ -189,8 +189,8 @@ CASE ( photo_collatz )
     b2(l) = - (wp(l) + wexpt(l))
     b3(l) = wp(l) * wexpt(l)
 
-    wl(l) = -b2(l) / (2.0 * b1(l))                                             &
-            - SQRT(b2(l) * b2(l) / beta2p2m4       - b3(l) / b1(l))
+    wmin(l) = -b2(l) / (2 * b1(l))                                             &
+         - SQRT(b2(l) * b2(l) / beta2p2m4       - b3(l) / b1(l))
 
   END DO
 !$OMP END DO
@@ -228,7 +228,7 @@ DO j = 1,open_pts
   !---------------------------------------------------------------------------
   ! Calculate the net rate of photosynthesis
   !---------------------------------------------------------------------------
-  al(l) = (wl(l) - rd(l)) * fsmc(l)
+  al(l) = (wmin(l) - rd(l)) * fsmc(l)
 
   !---------------------------------------------------------------------------
   ! Calculate the factor for converting mol/m3 into Pa (J/m3).

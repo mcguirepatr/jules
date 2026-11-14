@@ -56,6 +56,20 @@ CHARACTER(LEN=*), PARAMETER ::                                                 &
   proc_name = 'jules_final'   !  Name of this procedure.
 
 !-----------------------------------------------------------------------------
+! Warn if a deprecated value of can_rad_mod is used.
+! Using multiple calls to make this more prominent!
+!-----------------------------------------------------------------------------
+SELECT CASE ( can_rad_mod )
+CASE ( 2, 3 )
+  CALL log_warn(proc_name,'#############################################')
+  CALL log_warn(proc_name,'#############################################')
+  CALL log_warn(proc_name, 'can_rad_mod=2 and 3 are deprecated and ' //   &
+                'will be removed in future. Use 1 or 4 or 6-8 instead.')
+  CALL log_warn(proc_name,'#############################################')
+  CALL log_warn(proc_name,'#############################################')
+END SELECT
+
+!-----------------------------------------------------------------------------
 ! Warn if the ECOSSE soil model is used - it is not fully functional in this
 ! version.
 !-----------------------------------------------------------------------------

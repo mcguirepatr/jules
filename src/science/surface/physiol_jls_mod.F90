@@ -26,6 +26,7 @@ SUBROUTINE physiol (                                                           &
   smvccl_soilt,smvcst_soilt,smvcwt_soilt,vshr,z0_surft,z1_uv_ij,o3,            &
   canhc_surft,vfrac_surft,emis_surft,l_emis_surft_set,emis_soil,flake,         &
   g_leaf,gs,gc_surft,gc_stom_surft,gc_corr,gpp,gpp_pft,npp,npp_pft,            &
+  gpp_pft_lay,apar_pft_lay,cmpf_pft_lay,wlite_pft_lay,wmin_pft_lay,            &
   resp_p,resp_p_pft,resp_s_soilt,resp_l_pft,                                   &
   resp_r_pft,resp_w_pft,n_leaf,                                                &
   n_root,n_stem,lai_bal,                                                       &
@@ -248,8 +249,18 @@ REAL(KIND=real_jlslsm), INTENT(OUT) ::                                         &
     !Gridbox mean gross primary productivity (kg C/m2/s).
   gpp_pft(land_pts,npft),                                                      &
     !Gross primary productivity (kg C/m2/s).
-  npp(land_pts),                                                               &
-  !Gridbox mean net primary productivity (kg C/m2/s).
+  gpp_pft_lay(land_pts,npft,ilayers),                                         &
+    !Gross primary productivity (kg C/m2/s).
+  apar_pft_lay(land_pts,npft,ilayers),                                        &
+    !Absorbed PAR (W/m2).    
+  cmpf_pft_lay(land_pts,npft,ilayers),                                        &
+    !Compensation point factor (-).    
+  wlite_pft_lay(land_pts,npft,ilayers),                                       &
+    !Light limited gross photosynthetic rates (mol CO2/m2/s).
+  wmin_pft_lay(land_pts,npft,ilayers),                                        &
+    !Minimum of gross photosynthetic rates (mol CO2/m2/s).
+  npp(land_pts),                                                              &
+    !Gridbox mean net primary productivity (kg C/m2/s).
   npp_pft(land_pts,npft),                                                      &
     !Net primary productivity (kg C/m2/s).
   resp_p(land_pts),                                                            &
@@ -618,6 +629,23 @@ l_do_omp    = land_pts>omp_cutoff
 !$OMP sthu_irr_soilt, smvcst_soilt, gsoil_soilt, sthu_soilt,                   &
 !$OMP gc_corr, n_wtrac_jls, smc_soilt_wtrac, growth_sug_pft, growth_sug_gb,    &
 !$OMP lwp_c_pft,l_wtrac_jls)
+gpp_pft_lay(:,:,:)    = 0.0
+apar_pft_lay(:,:,:)   = 0.0
+cmpf_pft_lay(:,:,:)   = 0.0
+wlite_pft_lay(:,:,:)  = 0.0
+wmin_pft_lay(:,:,:)   = 0.0
+npp_pft(:,:)          = 0.0
+resp_p_pft(:,:)       = 0.0
+resp_w_pft(:,:)       = 0.0
+resp_l_pft(:,:)       = 0.0
+resp_r_pft(:,:)       = 0.0
+fsmc_pft(:,:)         = 0.0
+resp_s_soilt(:,:,:,:) = 0.0
+faparv(:,:)           = 0.0
+wt_ext_type(:,:,:)    = 0.0
+alb_type_dummy(:,:,:) = 0.0
+fapar_dir(:,:,:)      = 0.0
+fapar_dif(:,:,:)      = 0.0
 
 DO n = 1,npft
 !$OMP DO SCHEDULE(STATIC)
@@ -1091,7 +1119,7 @@ DO n = 1,npft
     END DO  !  layer
 !$OMP END PARALLEL DO
 
-    IF ( can_rad_mod == 5 .OR. can_rad_mod == 6 ) THEN
+    IF ( can_rad_mod == 5 .OR. can_rad_mod == 6 .OR. can_rad_mod == 8 ) THEN
 !$OMP PARALLEL DO IF(ilayers > 1) DEFAULT(NONE) PRIVATE(i, k, l, il)           &
 !$OMP SHARED(ilayers, surft_pts, surft_index, land_index, fapar_shd,           &
 !$OMP        diff_frac, fapar_dif2dif, fapar_dir2dir, fsun, fapar_sun,         &
@@ -1116,7 +1144,7 @@ DO n = 1,npft
         END DO !  points
       END DO  !  layer
 !$OMP END PARALLEL DO
-    END IF  !  can_rad_mod=5/6
+    END IF  !  can_rad_mod=5/6/8
 
   END IF  !  can_rad_mod
 
