@@ -207,6 +207,7 @@ CHARACTER(LEN=*), PARAMETER :: RoutineName='ALBPFT'
 
 INTEGER ::              errcode            ! Error code
 CHARACTER(LEN=80) :: ERRMSG             ! Error message text
+CHARACTER(LEN=50000) :: lineBuffer
 
 IF (lhook) CALL dr_hook(ModuleName//':'//RoutineName,zhook_in,zhook_handle)
 
@@ -537,6 +538,8 @@ DO n = 1,npft
 
             fapar_dir(l,n,i) = (-drdird_dlai + drdiru_dlai) * can_struct_a(n)
             fapar_dif(l,n,i) = (-drdifd_dlai + drdifu_dlai) * can_struct_a(n)
+            !WRITE(lineBuffer,*)'ZZZR2 ',l,n,i,fapar_dir(l,n,i),fapar_dif(l,n,i) 
+            !CALL jules_print('albpft',lineBuffer)
 
             la = la + dlai
           END DO  !layers
@@ -566,9 +569,13 @@ DO n = 1,npft
 
             rnet_dir(i) = rdird - rdiru
             rnet_dif(i) = rdifd - rdifu
+            WRITE(lineBuffer,*)'ZZZS1 ',i,rdird,rdiru,rnet_dir(i-1),rnet_dir(i) 
+            CALL jules_print('albpft',lineBuffer)
 
             fapar_dir(l,n,i) = (rnet_dir(i-1) - rnet_dir(i)) / dlai
             fapar_dif(l,n,i) = (rnet_dif(i-1) - rnet_dif(i)) / dlai
+            WRITE(lineBuffer,*)'ZZZS2 ',l,n,i,fapar_dir(l,n,i),fapar_dif(l,n,i) 
+            CALL jules_print('albpft',lineBuffer)
 
             dabeer_dla(i) = (exp_k_dlai_min_la - exp_minus_kla) / dlai
 
@@ -577,6 +584,14 @@ DO n = 1,npft
             fapar_dif2dif(l,n,i) = fapar_dif(l,n,i)
 
             fsun(l,n,i) = (exp_k_dlai_min_la - exp_minus_kla) / (k * dlai)
+            WRITE(lineBuffer,*)'ZZZS3 ',k,la,exp_minus_kla,i,dabeer_dla(i)
+            CALL jules_print('albpft',lineBuffer)
+            WRITE(lineBuffer,*)'ZZZS4 ',om,fapar_dir(l,n,i)
+            CALL jules_print('albpft',lineBuffer)
+            WRITE(lineBuffer,*)'ZZZS5 ',fapar_dir2dir(l,n,i),fapar_dir2dif(l,n,i)
+            CALL jules_print('albpft',lineBuffer)
+            WRITE(lineBuffer,*)'ZZZS6 ',fapar_dif(l,n,i),fsun(l,n,i)
+            CALL jules_print('albpft',lineBuffer)
 
             fapar_dir(l,n,i)     = fapar_dir(l,n,i) * can_struct_a(n)
             fapar_dif(l,n,i)     = fapar_dif(l,n,i) * can_struct_a(n)

@@ -233,19 +233,17 @@ CASE ( photo_collatz )
   !---------------------------------------------------------------------------
 
   IF (c3(ft) == 1) THEN
-
-!$OMP PARALLEL DO IF(open_pts > 1)                                             &
-!$OMP SCHEDULE(STATIC)                                                         &
-!$OMP DEFAULT(NONE)                                                            &
-!$OMP PRIVATE(l,j)                                                             &
-!$OMP SHARED(open_pts,veg_index,open_index,wcarb,vcmax,ci,ccp,kc,oa,ko,wlite,  &
+!$OMP PARALLEL DO IF(open_pts > 1)                                            &
+!$OMP SCHEDULE(STATIC)                                                        &
+!$OMP DEFAULT(NONE)                                                           &
+!$OMP PRIVATE(l,j)                                                            &
+!$OMP SHARED(open_pts,veg_index,open_index,wcarb,vcmax,ci,ccp,kc,oa,ko,wlite, &
 !$OMP        ft,wexpt,fwe_c3,alpha,acr)
     DO j = 1,open_pts
       l = veg_index(open_index(j))
-
       ! The numbers in these equations are from Cox, HCTN 24,
       ! "Description ... Vegetation Model", equations 54 and 55.
-      wcarb(l) = vcmax(l) * (ci(l) - ccp(l))                                   &
+      wcarb(l) = vcmax(l) * (ci(l) - ccp(l))                                  &
                  / (ci(l) + kc(l) * (1.0 + oa(l) / ko(l)))
       wlite(l) = alpha(ft) * acr(l) * (ci(l) - ccp(l)) / (ci(l) + 2.0 * ccp(l))
       wlite(l) = MAX(wlite(l), TINY(1.0e0))

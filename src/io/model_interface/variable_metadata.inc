@@ -9354,4 +9354,44 @@ DATA metadata(722) / var_metadata(                                             &
 ! Units
     "kg s-1"                                                                   &
   ) /
+!-----------------------------------------------------------------------------
+! Metadata for gpp_lyr
+!-----------------------------------------------------------------------------
+DATA metadata(723)/var_metadata(                                              &
+! String identifier
+    'gpp_lyr',                                                                &
+! Variable type
+    var_type_canlayer,                                                        &
+! Long name
+    "PFT gross primary productivity layer profile",                           &
+! Units
+    "kg m-2 s-1"                                                              &
+  )/  
+!-----------------------------------------------------------------------------
+! Metadata for apar_lyr
+!-----------------------------------------------------------------------------
+DATA metadata(724)/var_metadata(                                              &
+! String identifier
+    'apar_lyr',                                                               &
+! Variable type
+    var_type_canlayer,                                                        &
+! Long name
+    "PFT absorbed PAR layer profile",                                         &
+! Units
+    "W m-2"                                                                   &
+  )/  
+!-----------------------------------------------------------------------------
+! Metadata for cmpf_lyr
+!-----------------------------------------------------------------------------
+DATA metadata(725)/var_metadata(                                              &
+! String identifier
+    'cmpf_lyr',                                                               &
+! Variable type
+    var_type_canlayer,                                                        &
+! Long name
+    "PFT CO2 compensation point correction factor layer profile",             &
+! Units
+    "Unitless"                                                                &
+  )/  
+
 #endif

@@ -33,25 +33,21 @@ CONTAINS
 !
 ! *********************************************************************
 
-SUBROUTINE sf_stom  (land_pts,land_index                                       &
-,                    veg_pts,veg_index                                         &
-,                    ft,co2,co2_3d,co2_dim_len                                 &
-,                    co2_dim_row,l_co2_interactive                             &
-,                    fsmc,veg_state,ht,ipar,lai                                &
-,                    canht,pstar                                               &
-,                    q1,ra,tstar,o3,t_home_gb,t_growth_gb                      &
-,                    can_rad_mod,ilayers,faparv                                &
-,                    psi_root_zone,lwp_c                                       &
-,                    gpp,npp,resp_p,resp_l,resp_r,resp_w                       &
-,                    growth_sug, f_nsc                                         &
-,                    n_leaf,n_root,n_stem,lai_bal,gc                           &
-,                    fapar_sun,fapar_shd,fsun                                  &
-,                    flux_o3,fo3,fapar_diag,apar_diag                          &
-,                    isoprene,terpene,methanol,acetone                         &
-,                    open_index,open_pts,                                      &
-                    !New arguments replacing USE statements
-                    !crop_vars_mod (IN)
-                    dvi_cpft,rootc_cpft)
+SUBROUTINE sf_stom  (land_pts,land_index                                      &
+,                    veg_pts,veg_index                                        &
+,                    ft,co2,co2_3d,co2_dim_len                                &
+,                    co2_dim_row,l_co2_interactive                            &
+,                    fsmc,ht,ipar,lai                                         &
+,                    canht,pstar                                              &
+,                    q1,ra,tstar,o3                                           &
+,                    can_rad_mod,ilayers,faparv                               &
+,                    gpp,gpp_lay,apar_lay,cmpf_lay                            &
+,                    npp,resp_p,resp_l,resp_r,resp_w                          &
+,                    n_leaf,n_root,n_stem,lai_bal,gc                          &
+,                    fapar_sun,fapar_shd,fsun                                 &
+,                    flux_o3,fo3,fapar_diag                                   &
+,                    isoprene,terpene,methanol,acetone                        &
+,                    open_index,open_pts)
 
 USE leaf_mod, ONLY: leaf
 USE leaf_limits_mod, ONLY: leaf_limits
@@ -80,10 +76,9 @@ USE CN_utils_mod, ONLY:                                                        &
 
 USE pftparm, ONLY:                                                             &
 ! imported arrays that are not changed
-    a_wl, a_ws, act_jmax, act_vcmax, alpha_elec, b_wl, c3, deact_jmax,         &
-    deact_vcmax, ds_jmax, ds_vcmax, eta_sl, kpar, nl0, nr_nl, ns_nl, omega,    &
-    r_grow, sigl, lma, nmass, kn, knl, tupp, tlow,  q10_leaf, nsw, nr, hw_sw,  &
-    jv25_ratio
+    a_wl,a_ws,b_wl,eta_sl,kpar,nl0,nr_nl,ns_nl,omega,r_grow,                  &
+    sigl, glmin, lma, nmass, kn, knl, tupp, tlow, q10_leaf,                   &
+    nsw, nr, hw_sw, alpha, c3
 
 USE ccarbon, ONLY:                                                             &
 ! imported scalar parameters
@@ -196,6 +191,15 @@ REAL(KIND=real_jlslsm), INTENT(OUT) ::                                         &
  gpp(land_pts)                                                                 &
                             ! OUT Gross Primary Productivity
 !                                 !     (kg C/m2/s).
+,gpp_lay(land_pts,ilayers)                                                     &
+                            ! OUT Gross Primary Productivity
+!                                !     (kg C/m2/s).
+,apar_lay(land_pts,ilayers)                                                    &
+                            ! OUT Absorbed PAR
+!                                !     (W/m2).
+,cmpf_lay(land_pts,ilayers)                                                    &
+                            ! OUT Compensation point factor
+!                                !     (-).
 ,npp(land_pts)                                                                 &
                             ! OUT Net Primary Productivity
 !                                 !     (kg C/m2/s).
@@ -436,50 +440,43 @@ REAL(KIND=real_jlslsm) ::                                                      &
 ,fsmc_scale(land_pts)                                                          &
                             ! WORK Scaling of stem and root plant maintenance
                             ! respiration.
-,denom(land_pts)                                                               &
-   ! Denominator in temperature-dependency of Vcmax (Collatz model only).
-,dsj(land_pts)                                                                 &
-   ! Entropy factor for Jmax, including any acclimation (J mol-1 K-1).
-,dsv(land_pts)                                                                 &
-   ! Entropy factor for Vcmax, including any acclimation (J mol-1 K-1).
-,actj(land_pts)                                                                &
-   ! Activation energy for Jmax, including any acclimation (J mol-1).
-,actv(land_pts)                                                                &
-   ! Activation energy for Vcmax, including any acclimation (J mol-1).
-,ccp(land_pts)                                                                 &
-   ! Photorespiratory compensatory point (Pa). This is zero for C4 plants.
-,i2(land_pts)                                                                  &
-   ! Radiation that goes to Photosystem II, expressed as an electron flux
-   ! (mol electrons m-2 s-1).
-,je(land_pts)                                                                  &
-   ! Electron transport rate (mol m-2 s-1).
-,je_shd(land_pts)                                                              &
-   ! Electron transport rate for shaded leaves (mol m-2 s-1).
-,je_shd_ratio(land_pts)                                                        &
-   ! Ratio je_shd : je.
-,je_sun(land_pts)                                                              &
-   ! Electron transport rate for sunlit leaves (mol m-2 s-1).
-,je_sun_ratio(land_pts)                                                        &
-   ! Ratio je_sun : je.
-,jmax(land_pts)                                                                &
-   ! Maximum rate of electron transport (mol CO2 m-2 s-1).
-,jv25(land_pts)                                                                &
-   ! Ratio of Jmax to Vcmax at 25 degC, including any acclimation.
-,kc(land_pts)                                                                  &
-   ! Michaelis-Menten constant for CO2 (Pa).
-,km(land_pts)                                                                  &
-   ! A combination of Michaelis-Menten and other terms.
-,ko(land_pts)                                                                  &
-   ! Michaelis-Menten constant for O2 (Pa).
-,jmax_temp(land_pts)                                                           &
-   ! Factor expressing the effect of temperature on Jmax.
-,qtenf_term(land_pts)                                                          &
-   ! Q10 temperature term used for Vcmax.
-,vcmax_temp(land_pts)                                                          &
-   ! Factor expressing the effect of temperature on Vcmax.
-,vcmax(land_pts)                                                               &
-   ! Maximum rate of carboxylation of Rubisco (mol CO2/m2/s).
-,anetl(land_pts)                                                               &
+,fstem                                                                        &
+                            ! WORK Ratio of Respiring stem wood to Total Wood
+,stem_resp_scaling                                                            &
+                            ! WORK Scaling factor to reduce stem respiration
+,ccp(land_pts)                                                              
+                            ! WORK Photorespiratory compensatory
+!                                 !      point (Pa).     
+
+
+!Variables that can be pre-calculated outside of the layer and iteration loops
+REAL :: denom(land_pts)
+!denom(l) = (1 + EXP (0.3 * (tdegc(l) - tupp(ft)))) *
+!              (1 + EXP (0.3 * (tlow(ft) - tdegc(l))))
+REAL :: tau(land_pts)
+!tau(l)   = 2600.0 * (0.57 ** (0.1 * (tdegc(l) - 25.0)))
+REAL :: qtenf_term(land_pts)
+!qtenf_term(l) = (q10_leaf(ft) ** (0.1 * (tdegc(l) - 25.0)))
+REAL :: kc(land_pts)
+!kc(l)    = 30.0 * (2.1 ** (0.1 * (tdegc(l) - 25.0)))
+REAL :: ko(land_pts)
+!ko(l)    = 30000.0 * (1.2 ** (0.1 * (tdegc(l) - 25.0)))
+
+INTEGER ::                                                                    &
+ i,j,k,l,m,n                  ! WORK Loop counters.
+
+
+!-----------------------------------------------------------------------
+! Parameters
+!-----------------------------------------------------------------------
+REAL, PARAMETER      :: cconu = 12.0e-3
+                            ! kg C in 1 mol CO2
+!  (mol/sec) / (watts) conversion for PAR:
+REAL, PARAMETER      ::  conpar = 2.19e5
+
+
+REAL ::                                                                       &
+ anetl(land_pts)                                                              &
                             ! WORK Net leaf photosynthesis
 !                                 !      (mol CO2/m2/s/LAI).
 ,anetl_sun(land_pts)                                                           &
@@ -1239,7 +1236,7 @@ CASE ( 5, 6 )
 !$OMP PRIVATE(m,l)                                                             &
 !$OMP SHARED(veg_pts,veg_index,rd_sun,rd_shd,rd,open_pts,pft_photo_model,      &
 !$OMP        open_index,wlitev_sun,wlite,apar,fapar_sun,ipar,je_shd_ratio,     &
-!$OMP        je_sun_ratio,wlitev_shd,fapar_shd,icr,n,fsun,dlai)
+!$OMP        je_sun_ratio,wlitev_shd,fapar_shd,icr,n,fsun,dlai,apar_lay)
 
       IF ( pft_photo_model == photo_collatz ) THEN
 !$OMP DO SCHEDULE(STATIC)
@@ -1268,7 +1265,26 @@ CASE ( 5, 6 )
 !$OMP DO SCHEDULE(STATIC)
       DO m = 1,open_pts
         l = veg_index(open_index(m))
-        IF ( fapar_sun(l,n) * icr(l) * fsun(l,n) * dlai(l) *                   &
+        wlitev_sun(l) = wlite(l) / apar(l) * fapar_sun(l,n) * ipar(l)
+        wlitev_shd(l) = wlite(l) / apar(l) * fapar_shd(l,n) * ipar(l)
+
+        !TQ: Calculate APAR per layer for output:
+        apar_lay(l,n)=(fsun(l,n)*fapar_sun(l,n)+(1.-fsun(l,n))*                &
+                           fapar_shd(l,n))*ipar(l)*dlai(l)
+        !TQ: Compensation point factor
+        !cmpf_lay(l,n)=wlite(l)/(alpha(ft)*(apar_lay(l,n)/conpar))
+        !This is taken from leaf_limits:
+        ccp(l) = 0.5 * oa(l) / tau(l) * REAL(c3(ft))
+        cmpf_lay(l,n)=(ci(l) - ccp(l)) / (ci(l) + 2.0 * ccp(l))
+        !write (*,*) "####", l, n, cmpf_lay(l,n)
+
+        acr(l) = ipar(l) / conpar
+        !-----------------------------------------------------------------------
+        ! Introducing inhibition of leaf respiration in the light for sunlit and
+        ! shaded leaves, from papers by Atkin et al. This is an improvement over
+        ! the description used for can_rad_mod=4.
+        !-----------------------------------------------------------------------
+        IF ( fapar_sun(l,n) * acr(l) * fsun(l,n) * dlai(l) *                  &
              1.0e6 >  10.0 ) rd_sun(l) = 0.7 * rd_sun(l)
         IF ( fapar_shd(l,n) * icr(l) * (1.0 - fsun(l,n)) * dlai(l) *           &
              1.0e6 >  10.0 ) rd_shd(l) = 0.7 * rd_shd(l)
@@ -1317,7 +1333,8 @@ CASE ( 5, 6 )
 !$OMP PRIVATE(m,l)                                                             &
 !$OMP SHARED(veg_pts,veg_index,anetl,fsun,anetl_sun,anetl_shd,anetc,dlai,gc,   &
 !$OMP        gl,rdc,rd,rdmean,ilayers,l_o3_damage,flux_o3_l,flux_o3_l_sun,     &
-!$OMP        flux_o3_l_shd,fo3_l_sun,fo3_l_shd,flux_o3,fo3,lai,n,fo3_l)
+!$OMP        flux_o3_l_shd,fo3_l_sun,fo3_l_shd,flux_o3,fo3,lai,n,fo3_l,       &
+!$OMP        gpp_lay,fsmc,cconu)
     DO m = 1,veg_pts
       l = veg_index(m)
 
@@ -1327,6 +1344,13 @@ CASE ( 5, 6 )
 
       gc(l)        = gc(l)  + gl(l) * dlai(l)
       rdc(l)       = rdc(l) + rd(l) * dlai(l)
+      
+      !Calculate the GPP in the layer
+      gpp_lay(l,n) = fsun(l,n) * anetl_sun(l) + (1.0 - fsun(l,n)) * anetl_shd(l)
+      gpp_lay(l,n) = gpp_lay(l,n) * dlai(l)
+      gpp_lay(l,n) = gpp_lay(l,n) + rd(l) * dlai(l) * fsmc(l)
+      gpp_lay(l,n) = gpp_lay(l,n) * cconu
+
 
       rdmean(l)    = rdmean(l) + rd(l) / REAL(ilayers)
 

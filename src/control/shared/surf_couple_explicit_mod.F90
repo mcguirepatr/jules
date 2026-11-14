@@ -65,7 +65,10 @@ SUBROUTINE surf_couple_explicit(                                               &
     !JULES aero module
     co2_3d_ij,                                                                 &
     !JULES trifctl module
-    asteps_since_triffid,                                                      &
+    asteps_since_triffid, g_leaf_acc_pft, npp_acc_pft, resp_w_acc_pft,        &
+    resp_s_acc_gb_um, gpp_gb, npp_gb, resp_p_gb, g_leaf_pft, gpp_pft,         &
+    gpp_pft_lay, apar_pft_lay, cmpf_pft_lay,npp_pft,                          &
+    resp_p_pft, resp_s_gb_um, resp_w_pft,                                     &
     !JULES p_s_parms module
     soil_clay_ij,                                                              &
     !JULES switches module
@@ -123,7 +126,7 @@ USE jules_sea_seaice_mod,     ONLY:                                            &
 USE jules_soil_mod,           ONLY:                                            &
   sm_levels
 USE jules_vegetation_mod,     ONLY:                                            &
-  l_phenol
+  l_phenol, ilayers
 USE jules_surface_types_mod,  ONLY:                                            &
   npft
 USE sf_diags_mod, ONLY: strnewsfdiag
@@ -170,7 +173,6 @@ USE switches,               ONLY:                                              &
   l_co2_interactive, l_dust, l_mr_physics
 USE aero,                   ONLY:                                              &
   co2_mmr
-
 #endif
 
 ! reads the lsm switch set in a namelist

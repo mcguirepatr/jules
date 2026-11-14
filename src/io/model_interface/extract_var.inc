@@ -67,6 +67,14 @@ USE veg_param, ONLY:                                                           &
 USE jules_soil_biogeochem_mod, ONLY: soil_bgc_model, soil_model_ecosse,        &
   soil_model_4pool
 
+USE trifctl, ONLY:                                                            &
+    cv_gb, gpp_gb, lit_c_mn_gb, npp_gb, resp_p_gb,                            &
+    resp_s_soilt, resp_s_dr_out_gb, c_veg_pft, g_leaf_pft,                    &
+    g_leaf_day_pft, g_leaf_dr_out_pft, g_leaf_phen_pft,                       &
+    gpp_pft,gpp_pft_lay, apar_pft_lay, cmpf_pft_lay,                          &
+    lit_c_pft, npp_dr_out_pft, npp_pft, resp_p_pft,                           &
+    resp_w_dr_out_pft, resp_w_pft, lai_phen_pft, frac_agr_gb
+
 USE jules_soil_ecosse_mod, ONLY: dt_soilc
 
 USE jules_soil_mod, ONLY:                                                      &
@@ -1285,9 +1293,25 @@ CASE ( 'c_veg' )
 CASE ( 'fapar' )
   cube_land = cube_from_array(trif_vars%fapar_diag_pft)
   cube = map_from_land(cube_land)
+ 
+CASE ( 'gpp_lyr' )
+  cube_land = cube_from_array(gpp_pft_lay)
+  cube = map_from_land(cube_land)
 
 CASE ( 'apar' )
   cube_land = cube_from_array(trif_vars%apar_diag_pft)
+  cube = map_from_land(cube_land)
+
+CASE ( 'apar_lyr' )
+  cube_land = cube_from_array(apar_pft_lay)
+  cube = map_from_land(cube_land)
+ 
+CASE ( 'cmpf_lyr' )
+  cube_land = cube_from_array(cmpf_pft_lay)
+  cube = map_from_land(cube_land)
+
+CASE ( 'lai' )
+  cube_land = cube_from_array(lai_pft)
   cube = map_from_land(cube_land)
 
 CASE ( 'apar_gb' )
